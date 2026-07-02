@@ -27,7 +27,7 @@ services:
       - key: APP_KEY
         sync: false
       - key: APP_URL
-        value: https://incubadora-backend.onrender.com
+        value: https://incubadora-backend-5plq.onrender.com
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
@@ -53,7 +53,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: https://incubadora-backend.onrender.com
+        value: https://incubadora-backend-5plq.onrender.com
     routes:
       - type: rewrite
         source: /*
