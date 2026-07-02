@@ -13,4 +13,4 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction \
 
 EXPOSE 10000
 
-CMD sh -c "php artisan migrate --force --no-interaction && php artisan config:cache && php artisan route:cache && php artisan view:cache && (php artisan storage:link || true) && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"
+CMD sh -c "php artisan migrate --force --no-interaction && php artisan db:seed --force --no-interaction && php artisan config:cache && php artisan route:cache && php artisan view:cache && (php artisan storage:link || true) && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"
