@@ -89,7 +89,7 @@ export const NotificacionesBell: React.FC<Props> = ({ accentColor = '#1A365D' })
       </button>
 
       {open && (
-        <div className="absolute right-0 top-12 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+        <div className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-16 sm:top-12 w-auto sm:w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <span className="text-sm font-medium text-gray-700">Notificaciones</span>

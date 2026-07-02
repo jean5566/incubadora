@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
-import {
-  GraduationCap, Mail, Lock, LogIn, ArrowRight,
-  User, Eye, EyeOff, CheckCircle2, AlertCircle,
-} from 'lucide-react';
 import { login as apiLogin, register as apiRegister, type User as UserType } from '../api';
+import { Mail, Lock, User, Briefcase, ChevronRight, LogIn, UserPlus, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface LoginProps {
   onLogin: (user: UserType, token: string) => void;
@@ -20,8 +17,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [rol,          setRol]          = useState<'mentor' | 'emprendedor'>('emprendedor');
   const [clave,        setClave]        = useState('');
   const [confirmacion, setConfirmacion] = useState('');
-  const [showPass,     setShowPass]     = useState(false);
-  const [showLogin,    setShowLogin]    = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error,     setError]     = useState('');
@@ -44,12 +39,24 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (clave !== confirmacion) { setError('Las contraseñas no coinciden.'); return; }
+    if (clave !== confirmacion) {
+      setError('Las contraseñas no coinciden.');
+      return;
+    }
     setIsLoading(true);
     try {
-      await apiRegister({ nombre, correo, rol, clave, clave_confirmation: confirmacion });
-      setNombre(''); setCorreo(''); setClave(''); setConfirmacion('');
-      setSuccess('¡Cuenta creada! Ya puedes iniciar sesión.');
+      await apiRegister({
+        nombre,
+        correo,
+        rol,
+        clave,
+        clave_confirmation: confirmacion
+      });
+      setNombre('');
+      setCorreo('');
+      setClave('');
+      setConfirmacion('');
+      setSuccess('¡Cuenta creada con éxito! Ya puedes iniciar sesión.');
       switchMode('login');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al registrarse.');
@@ -58,237 +65,283 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
   };
 
-  const switchMode = (m: 'login' | 'register') => { setMode(m); setError(''); setSuccess(''); };
-
-  const inp = 'w-full pl-10 pr-3 py-2.5 border-b border-gray-200 bg-transparent text-sm text-gray-800 outline-none focus:border-teal-500 transition-colors placeholder:text-gray-300';
-  const lbl = 'block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1';
+  const switchMode = (m: 'login' | 'register') => {
+    setMode(m);
+    setError('');
+    setSuccess('');
+  };
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center font-sans overflow-hidden relative"
-      style={{
-        background: 'radial-gradient(ellipse at 20% 50%, #ccfbf1 0%, #f0fdf9 40%, #d1fae5 100%)',
-      }}
-    >
-      {/* Decoración de fondo — círculos */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-teal-100/60 blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full bg-emerald-100/60 blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-teal-50/80 blur-2xl" />
+    <div className="min-h-screen flex items-center justify-center p-4 font-sans text-slate-800 bg-gradient-to-br from-[#0F2442] via-[#1A365D] to-[#0F2442] relative overflow-hidden">
+      
+      {/* Decorative background elements (Tech Theme) */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+        {/* Tech Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:32px_32px]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#0F2442_100%)] opacity-80"></div>
+        
+        {/* Glowing Orbs */}
+        <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-blue-500/10 blur-[120px] rounded-full"></div>
+        <div className="absolute top-[60%] -right-[10%] w-[40%] h-[60%] bg-indigo-400/10 blur-[100px] rounded-full"></div>
+
+        {/* Tech Geometric Accents */}
+        <div className="absolute top-[15%] right-[10%] w-64 h-64 border border-white/5 rounded-full"></div>
+        <div className="absolute top-[18%] right-[11.5%] w-48 h-48 border border-blue-400/10 rounded-full border-dashed animate-[spin_60s_linear_infinite]"></div>
+        
+        <div className="absolute bottom-[10%] left-[5%] w-96 h-96 border border-white/5 rounded-full"></div>
+        <div className="absolute bottom-[15%] left-[8%] w-72 h-72 border border-indigo-400/10 rounded-full border-dashed animate-[spin_40s_linear_infinite_reverse]"></div>
+        
+        {/* Crosshairs & Dots */}
+        <div className="absolute top-[30%] left-[20%] w-2 h-2 bg-blue-400/30 rounded-full shadow-[0_0_10px_rgba(96,165,250,0.5)]"></div>
+        <div className="absolute bottom-[40%] right-[25%] w-1 h-1 bg-white/30 rounded-full"></div>
+        <div className="absolute top-[70%] left-[30%] flex gap-1">
+          <div className="w-1 h-1 bg-white/20"></div>
+          <div className="w-1 h-1 bg-white/20"></div>
+          <div className="w-1 h-1 bg-white/20"></div>
+        </div>
       </div>
 
-      {/* Card principal */}
-      <div className="relative z-10 w-full max-w-4xl mx-4 flex rounded-3xl overflow-hidden shadow-2xl shadow-indigo-200/50">
-
-        {/* ── Franja izquierda ── */}
-        <div className="w-2 shrink-0 bg-gradient-to-b from-teal-400 via-emerald-500 to-green-600" />
-
-        {/* ── Contenido ── */}
-        <div className="flex-1 flex bg-white">
-
-          {/* Columna izquierda — branding */}
-          <div className="hidden md:flex md:w-5/12 flex-col justify-between p-10 bg-gradient-to-br from-teal-600 to-emerald-700 text-white relative overflow-hidden">
-
-            {/* Patrón de puntos */}
-            <div className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
-                backgroundSize: '24px 24px',
-              }}
-            />
-
-            {/* Forma decorativa */}
-            <div className="absolute -bottom-16 -right-16 w-56 h-56 rounded-full bg-white/10" />
-            <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full bg-white/5" />
-
-            <div className="relative z-10">
-              <div className="w-11 h-11 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center mb-6">
-                <GraduationCap className="w-6 h-6 text-white" />
-              </div>
-              <p className="text-xs font-bold tracking-widest text-teal-100 uppercase mb-2">UniIncubadora</p>
-              <h2 className="text-2xl font-extrabold leading-tight text-white">
-                Del aula<br />al mercado.
-              </h2>
-              <p className="text-teal-100 text-sm mt-3 leading-relaxed">
-                Plataforma para gestionar proyectos de emprendimiento universitario.
-              </p>
-            </div>
-
-            <div className="relative z-10 space-y-3">
-              {[
-                'Seguimiento por etapas de incubación',
-                'Mentoría personalizada para cada proyecto',
-                'Gestión de entregas y revisiones',
-              ].map(t => (
-                <div key={t} className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-teal-200 shrink-0 mt-0.5" />
-                  <p className="text-teal-50 text-xs leading-relaxed">{t}</p>
+      <div className="w-full max-w-6xl flex flex-col md:flex-row items-center justify-between gap-12 relative z-10 mx-auto">
+        
+        {/* Info Section on the background */}
+        <div className="hidden md:flex flex-1 flex-col text-white">
+          <div className="max-w-md animate-in fade-in slide-in-from-left-8 duration-700">
+            <h2 className="text-4xl font-extrabold mb-4 tracking-tight leading-tight">Incubación de<br/>Proyectos</h2>
+            <p className="text-blue-100/90 leading-relaxed text-[16px] mb-10 font-medium">
+              Nuestra plataforma está diseñada para acompañar a estudiantes y emprendedores en cada etapa de su proyecto. Desde la idea inicial hasta el lanzamiento, conectando talento con mentores clave.
+            </p>
+            
+            <div className="space-y-6">
+              <div className="flex items-center gap-4 group">
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10 group-hover:bg-white/20 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+                  <Briefcase className="w-5 h-5 text-blue-200" />
                 </div>
-              ))}
+                <div>
+                  <h3 className="font-bold text-[15px]">Proyectos Reales</h3>
+                  <p className="text-sm text-blue-200/80 mt-0.5">Desarrollo de ideas con impacto directo en el mercado y la sociedad.</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4 group">
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10 group-hover:bg-white/20 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+                  <UserPlus className="w-5 h-5 text-blue-200" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-[15px]">Mentoría Experta</h3>
+                  <p className="text-sm text-blue-200/80 mt-0.5">Guía personalizada de profesionales y docentes del sector tecnológico.</p>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Columna derecha — formulario */}
-          <div className="flex-1 flex flex-col justify-between p-8 md:p-10">
-
-            {/* Header */}
-            <div>
-              {/* Branding móvil */}
-              <div className="flex items-center gap-2 mb-6 md:hidden">
-                <GraduationCap className="w-5 h-5 text-teal-600" />
-                <span className="text-sm font-bold text-teal-600 uppercase tracking-widest">UniIncubadora</span>
+        {/* Left Form Section (Now on the right inside its own card) */}
+        <div className="w-full max-w-2xl min-h-[600px] flex flex-col transition-all duration-500 bg-gradient-to-br from-white/10 via-white/5 to-white/[0.02] backdrop-blur-xl border border-white/20 shadow-[0_8px_40px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.15)] overflow-hidden relative z-20 rounded-2xl">
+          <div className="p-8 pb-6 flex flex-col items-center text-center">
+            {mode === 'login' && (
+              <div className="mb-5 inline-block animate-in fade-in zoom-in duration-300">
+                <img src="/logo.png" alt="Logo de Tecnologías de la Información" className="h-20 w-auto object-contain drop-shadow-md transition-transform hover:scale-105 duration-300" />
               </div>
-
-              <h1 className="text-2xl font-extrabold text-gray-900">
-                {mode === 'login' ? 'Hola, bienvenido' : 'Crear cuenta'}
-              </h1>
-              <p className="text-sm text-gray-400 mt-1">
-                {mode === 'login'
-                  ? 'Ingresa para continuar en la plataforma.'
-                  : 'Regístrate con tu correo institucional.'}
-              </p>
-
-              {/* Tabs pill */}
-              <div className="flex gap-1 mt-5 mb-6 p-1 bg-gray-100 rounded-xl w-fit">
-                {(['login', 'register'] as const).map(m => (
-                  <button key={m} onClick={() => switchMode(m)}
-                    className={`px-5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer
-                      ${mode === m
-                        ? 'bg-white text-teal-600 shadow-sm'
-                        : 'text-gray-400 hover:text-gray-600'}`}>
-                    {m === 'login' ? 'Ingresar' : 'Registrarse'}
-                  </button>
-                ))}
-              </div>
-
-              {/* Alertas */}
-              {success && (
-                <div className="flex items-center gap-2 mb-4 px-4 py-2.5 bg-green-50 border border-green-200 rounded-xl text-green-700 text-xs font-medium">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" /> {success}
-                </div>
-              )}
-              {error && (
-                <div className="flex items-center gap-2 mb-4 px-4 py-2.5 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-medium">
-                  <AlertCircle className="w-4 h-4 shrink-0" /> {error}
-                </div>
-              )}
-            </div>
-
-            {/* Slider de formularios */}
-            <div className="flex-1 overflow-hidden">
-              <div
-                className="flex w-[200%] h-full transition-transform duration-500 ease-in-out"
-                style={{ transform: mode === 'register' ? 'translateX(-50%)' : 'translateX(0)' }}
-              >
-
-                {/* LOGIN */}
-                <div className="w-1/2 flex flex-col justify-center space-y-5">
-                  <form onSubmit={handleLogin} className="space-y-5">
-                    <div>
-                      <label className={lbl}>Correo electrónico</label>
-                      <div className="relative">
-                        <Mail className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                        <input type="email" value={loginCorreo} onChange={e => setLoginCorreo(e.target.value)}
-                          required className={inp} placeholder="usuario@universidad.edu.ec" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className={lbl}>Contraseña</label>
-                      <div className="relative">
-                        <Lock className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                        <input type={showLogin ? 'text' : 'password'} value={loginClave}
-                          onChange={e => setLoginClave(e.target.value)} required
-                          className={`${inp} pr-10`} placeholder="••••••••" />
-                        <button type="button" onClick={() => setShowLogin(p => !p)}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 cursor-pointer">
-                          {showLogin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </div>
-                    <button type="submit" disabled={isLoading}
-                      className="w-full py-3 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 shadow-lg shadow-teal-200 mt-2">
-                      {isLoading
-                        ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        : <><LogIn className="w-4 h-4" /> Ingresar</>}
-                    </button>
-                  </form>
-                </div>
-
-                {/* REGISTER */}
-                <div className="w-1/2 flex flex-col justify-center">
-                  <form onSubmit={handleRegister} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2">
-                        <label className={lbl}>Nombre completo</label>
-                        <div className="relative">
-                          <User className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                          <input type="text" value={nombre} onChange={e => setNombre(e.target.value)}
-                            required className={inp} placeholder="Pedro Sáenz" />
-                        </div>
-                      </div>
-                      <div className="col-span-2">
-                        <label className={lbl}>Correo institucional</label>
-                        <div className="relative">
-                          <Mail className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                          <input type="email" value={correo} onChange={e => setCorreo(e.target.value)}
-                            required className={inp} placeholder="usuario@universidad.edu.ec" />
-                        </div>
-                      </div>
-                      <div className="col-span-2">
-                        <label className={lbl}>Rol</label>
-                        <select value={rol} onChange={e => setRol(e.target.value as 'mentor' | 'emprendedor')}
-                          className="w-full pb-2 border-b border-gray-200 bg-transparent text-sm text-gray-700 outline-none focus:border-teal-500 transition-colors cursor-pointer">
-                          <option value="emprendedor">Estudiante (Emprendedor)</option>
-                          <option value="mentor">Docente (Mentor)</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className={lbl}>Contraseña</label>
-                        <div className="relative">
-                          <Lock className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                          <input type={showPass ? 'text' : 'password'} value={clave}
-                            onChange={e => setClave(e.target.value)} required minLength={8}
-                            className={`${inp} pr-9`} placeholder="Mín. 8 chars" />
-                          <button type="button" onClick={() => setShowPass(p => !p)}
-                            className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 cursor-pointer">
-                            {showPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                          </button>
-                        </div>
-                      </div>
-                      <div>
-                        <label className={lbl}>Confirmar</label>
-                        <div className="relative">
-                          <Lock className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                          <input type={showPass ? 'text' : 'password'} value={confirmacion}
-                            onChange={e => setConfirmacion(e.target.value)} required
-                            className={`${inp} ${confirmacion && confirmacion !== clave ? '!border-red-400' : ''}`}
-                            placeholder="Repetir" />
-                        </div>
-                        {confirmacion && confirmacion !== clave && (
-                          <p className="text-[10px] text-red-400 mt-1">No coinciden</p>
-                        )}
-                      </div>
-                    </div>
-                    <button type="submit"
-                      disabled={isLoading || (!!confirmacion && confirmacion !== clave)}
-                      className="w-full py-3 rounded-2xl bg-gradient-to-r from-teal-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-indigo-200 mt-1">
-                      {isLoading
-                        ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        : <><ArrowRight className="w-4 h-4" /> Crear Cuenta</>}
-                    </button>
-                  </form>
-                </div>
-
-              </div>
-            </div>
-
-            {/* Footer */}
-            <p className="text-xs text-gray-400 text-center pt-4 border-t border-gray-100 mt-4">
-              {mode === 'login'
-                ? <>¿No tienes cuenta?{' '}<button onClick={() => switchMode('register')} className="text-teal-600 font-semibold hover:underline cursor-pointer">Regístrate aquí</button></>
-                : <>¿Ya tienes cuenta?{' '}<button onClick={() => switchMode('login')} className="text-teal-600 font-semibold hover:underline cursor-pointer">Inicia sesión</button></>
-              }
+            )}
+            <h1 className="text-2xl font-extrabold text-white m-0 tracking-tight">Tecnologías de la Información</h1>
+            <p className="text-sm font-medium text-blue-100/70 mt-2">
+              {mode === 'login' ? 'Bienvenido de nuevo al portal' : 'Crea tu cuenta institucional'}
             </p>
+          </div>
 
+        <div className="flex justify-center px-6 mb-2">
+          <div className="inline-flex gap-1 bg-white/5 p-1.5 border border-white/10 rounded-full">
+            <button
+              className={`px-6 py-2 text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 rounded-full ${
+                mode === 'login'
+                  ? 'bg-white/90 text-[#1A365D] shadow-sm'
+                  : 'text-blue-200/60 hover:text-white hover:bg-white/10'
+              }`}
+              onClick={() => switchMode('login')}
+              type="button"
+            >
+              <LogIn className="w-4 h-4" />
+              Ingresar
+            </button>
+            <button
+              className={`px-6 py-2 text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 rounded-full ${
+                mode === 'register'
+                  ? 'bg-white/90 text-[#1A365D] shadow-sm'
+                  : 'text-blue-200/60 hover:text-white hover:bg-white/10'
+              }`}
+              onClick={() => switchMode('register')}
+              type="button"
+            >
+              <UserPlus className="w-4 h-4" />
+              Registrarse
+            </button>
+          </div>
+        </div>
+
+        {success && (
+          <div className="mx-8 mt-4 p-4 bg-green-500/10 border border-green-400/30 flex items-start gap-3 backdrop-blur-sm rounded-2xl">
+            <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 shrink-0" />
+            <p className="text-sm text-green-300 font-medium m-0">{success}</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="mx-8 mt-4 p-4 bg-red-500/10 border border-red-400/30 flex items-start gap-3 backdrop-blur-sm rounded-2xl">
+            <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 shrink-0" />
+            <p className="text-sm text-red-300 font-medium m-0">{error}</p>
+          </div>
+        )}
+
+        <div className="p-8 pt-4 flex-1 flex flex-col justify-center">
+          {mode === 'login' ? (
+            <form onSubmit={handleLogin} className="max-w-sm mx-auto w-full animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="flex flex-col gap-1.5 group mb-5">
+                <label className="text-[13px] font-semibold text-blue-100/80 ml-1">Correo Electrónico</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-blue-200/50 group-focus-within:text-blue-300 transition-colors">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <input
+                    type="email"
+                    value={loginCorreo}
+                    onChange={e => setLoginCorreo(e.target.value)}
+                    placeholder="ejemplo@universidad.edu"
+                    required
+                    className="w-full pl-11 pr-4 py-3 border-white/10 bg-white/5 text-white placeholder-blue-200/40 focus:outline-none focus:border-blue-400 focus:bg-white/10 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200 border rounded-2xl"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5 group mb-6">
+                <label className="text-[13px] font-semibold text-blue-100/80 ml-1">Contraseña</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-blue-200/50 group-focus-within:text-blue-300 transition-colors">
+                    <Lock className="h-5 w-5" />
+                  </div>
+                  <input
+                    type="password"
+                    value={loginClave}
+                    onChange={e => setLoginClave(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full pl-11 pr-4 py-3 border-white/10 bg-white/5 text-white placeholder-blue-200/40 focus:outline-none focus:border-blue-400 focus:bg-white/10 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200 border rounded-2xl"
+                  />
+                </div>
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={isLoading} 
+                className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 px-4 bg-white hover:bg-blue-50 text-[#1A365D] font-semibold shadow-lg shadow-black/20 transition-all duration-300 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed group rounded-2xl"
+              >
+                {isLoading ? 'Ingresando...' : 'Entrar al Portal'}
+                {!isLoading && <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleRegister} className="max-w-sm mx-auto grid grid-cols-2 gap-x-4 gap-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="flex flex-col gap-1.5 group col-span-1">
+                <label className="text-[13px] font-semibold text-blue-100/80 ml-1">Nombre Completo</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-200/50 group-focus-within:text-blue-300 transition-colors">
+                    <User className="h-4 w-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={nombre}
+                    onChange={e => setNombre(e.target.value)}
+                    placeholder="Ej: Ana García"
+                    required
+                    className="w-full pl-9 pr-3 py-2.5 text-sm border-white/10 bg-white/5 text-white placeholder-blue-200/40 focus:outline-none focus:border-blue-400 focus:bg-white/10 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200 border rounded-2xl"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5 group col-span-1">
+                <label className="text-[13px] font-semibold text-blue-100/80 ml-1">Rol</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-200/50 group-focus-within:text-blue-300 transition-colors z-10">
+                    <Briefcase className="h-4 w-4" />
+                  </div>
+                  <select
+                    value={rol}
+                    onChange={e => setRol(e.target.value as 'mentor' | 'emprendedor')}
+                    className="w-full pl-9 pr-8 py-2.5 text-sm border-white/10 bg-white/5 text-white focus:outline-none focus:border-blue-400 focus:bg-white/10 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200 border appearance-none relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2393c5fd%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] bg-[length:0.6rem_auto] rounded-2xl"
+                  >
+                    <option value="emprendedor" className="text-slate-800">Emprendedor</option>
+                    <option value="mentor" className="text-slate-800">Docente</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5 group col-span-2">
+                <label className="text-[13px] font-semibold text-blue-100/80 ml-1">Correo Institucional</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-200/50 group-focus-within:text-blue-300 transition-colors">
+                    <Mail className="h-4 w-4" />
+                  </div>
+                  <input
+                    type="email"
+                    value={correo}
+                    onChange={e => setCorreo(e.target.value)}
+                    placeholder="ejemplo@universidad.edu"
+                    required
+                    className="w-full pl-9 pr-3 py-2.5 text-sm border-white/10 bg-white/5 text-white placeholder-blue-200/40 focus:outline-none focus:border-blue-400 focus:bg-white/10 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200 border rounded-2xl"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5 group col-span-2">
+                <label className="text-[13px] font-semibold text-blue-100/80 ml-1">Contraseña</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-200/50 group-focus-within:text-blue-300 transition-colors">
+                    <Lock className="h-4 w-4" />
+                  </div>
+                  <input
+                    type="password"
+                    value={clave}
+                    onChange={e => setClave(e.target.value)}
+                    placeholder="Mín. 8"
+                    required
+                    minLength={8}
+                    className="w-full pl-9 pr-3 py-2.5 text-sm border-white/10 bg-white/5 text-white placeholder-blue-200/40 focus:outline-none focus:border-blue-400 focus:bg-white/10 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200 border rounded-2xl"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5 group col-span-2">
+                <label className="text-[13px] font-semibold text-blue-100/80 ml-1">Confirmar</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-200/50 group-focus-within:text-blue-300 transition-colors">
+                    <CheckCircle2 className="h-4 w-4" />
+                  </div>
+                  <input
+                    type="password"
+                    value={confirmacion}
+                    onChange={e => setConfirmacion(e.target.value)}
+                    placeholder="Repetir"
+                    required
+                    className={`w-full pl-9 pr-3 py-2.5 text-sm border bg-white/5 text-white placeholder-blue-200/40 focus:outline-none focus:bg-white/10 focus:ring-2 transition-all duration-200 rounded-2xl ${
+                      confirmacion && clave !== confirmacion
+                        ? 'border-red-400/50 focus:border-red-400 focus:ring-red-400/20'
+                        : 'border-white/10 focus:border-blue-400 focus:ring-blue-400/20'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              <div className="col-span-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={isLoading || (!!confirmacion && confirmacion !== clave)}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white hover:bg-blue-50 text-[#1A365D] font-semibold shadow-lg shadow-black/20 transition-all duration-300 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed group rounded-2xl"
+                >
+                  {isLoading ? 'Registrando...' : 'Completar Registro'}
+                  {!isLoading && <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
+                </button>
+              </div>
+            </form>
+          )}
           </div>
         </div>
       </div>

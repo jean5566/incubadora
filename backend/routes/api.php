@@ -39,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Proyectos
     Route::get('/proyectos',                           [ProyectoController::class, 'index']);
     Route::post('/proyectos',                          [ProyectoController::class, 'store']);
+    Route::put('/proyectos/{proyecto}',                [ProyectoController::class, 'update']);
     Route::get('/proyectos/todos',                     [ProyectoController::class, 'todos']);
     Route::patch('/proyectos/{proyecto}/estado',       [ProyectoController::class, 'cambiarEstado']);
     Route::get('/proyectos/aprobados',                 [ProyectoController::class, 'aprobados']);

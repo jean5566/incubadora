@@ -31,7 +31,7 @@ export const AdminDashboardPage: React.FC = () => {
   const rechazados    = proyectos.filter(p => p.estado === 'rechazado').length;
 
   const Skeleton = () => (
-    <div className="h-5 w-12 bg-gray-200 rounded animate-pulse" />
+    <span className="inline-block h-5 w-12 bg-gray-200 rounded animate-pulse" />
   );
 
   return (

@@ -11,8 +11,8 @@ class DatabaseSeeder extends Seeder
     {
         User::create([
             'nombre' => 'Administrador',
-            'correo' => 'admin@uniincubadora.edu.ec',
-            'clave'  => 'password1234',
+            'correo' => env('ADMIN_SEED_EMAIL', 'admin@unesum.edu.ec'),
+            'clave'  => env('ADMIN_SEED_PASSWORD', 'Inc4bad0ra#Admin2026'),
             'rol'    => 'administrador',
         ]);
     }

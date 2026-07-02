@@ -1,5 +1,12 @@
-const BASE_URL = 'http://localhost:8000/api';
-const BACKEND_ORIGIN = 'http://localhost:8000';
+const BACKEND_ORIGIN = import.meta.env.VITE_API_URL;
+
+if (!BACKEND_ORIGIN) {
+  throw new Error(
+    'Falta VITE_API_URL. Copia frontend/.env.example a frontend/.env y define ahí la URL del backend (ej: http://localhost:8000).'
+  );
+}
+
+const BASE_URL = `${BACKEND_ORIGIN}/api`;
 
 export function storageUrl(path: string | null | undefined): string | null {
   if (!path) return null;
@@ -152,6 +159,19 @@ export async function crearProyecto(data: {
   });
 }
 
+export async function editarProyecto(id: number, data: {
+  nombre_proyecto: string;
+  descripcion: string;
+  sector_tecnologico?: string;
+  problema_resuelve?: string;
+  propuesta_valor?: string;
+}) {
+  return request<{ message: string; data: Proyecto }>(`/proyectos/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
 export async function getTodosProyectos() {
   return request<ProyectoConUsuario[]>('/proyectos/todos');
 }
@@ -288,6 +308,7 @@ export interface Revision {
   id_revision: number;
   id_seguimiento: number;
   fecha_envio: string;
+  comentario_estudiante: string | null;
   observaciones: string | null;
   revisado: boolean;
   documentos: RevisionDocumento[];
@@ -297,13 +318,16 @@ export async function getRevisiones(id_seguimiento: number) {
   return request<Revision[]>(`/seguimientos/${id_seguimiento}/revisiones`);
 }
 
-export async function crearRevision(id_seguimiento: number, nombres: string[], archivos: File[]) {
+export async function crearRevision(id_seguimiento: number, nombres: string[], archivos: File[], comentarioEstudiante?: string) {
   const token = localStorage.getItem('token');
   const form  = new FormData();
   archivos.forEach((f, i) => {
     form.append(`archivos[${i}]`, f);
     form.append(`nombres[${i}]`, nombres[i]);
   });
+  if (comentarioEstudiante) {
+    form.append('comentario_estudiante', comentarioEstudiante);
+  }
 
   const res = await fetch(`${BASE_URL}/seguimientos/${id_seguimiento}/revisiones`, {
     method: 'POST',

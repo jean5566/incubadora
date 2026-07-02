@@ -22,7 +22,8 @@ function AppRoutes({ user, onLogin, onLogout }: {
     ? '/login'
     : user.rol === 'administrador' ? '/admin/dashboard'
     : user.rol === 'mentor'        ? '/mentor/dashboard'
-    : '/emprendedor/dashboard';
+    : user.rol === 'emprendedor'   ? '/emprendedor/dashboard'
+    : '/login';
 
   return (
     <Routes>
@@ -78,7 +79,16 @@ function App() {
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      try { setUser(JSON.parse(savedUser)); } catch {
+      try {
+        const parsed = JSON.parse(savedUser);
+        const rolValido = ['administrador', 'mentor', 'emprendedor'].includes(parsed?.rol);
+        if (rolValido) {
+          setUser(parsed);
+        } else {
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+        }
+      } catch {
         localStorage.removeItem('user');
         localStorage.removeItem('token');
       }

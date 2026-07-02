@@ -404,6 +404,16 @@ export const SeguimientoDetallePage: React.FC = () => {
                         )}
                       </div>
 
+                      {/* Comentario del estudiante */}
+                      {r.comentario_estudiante && (
+                        <div className="px-4 py-3 border-b border-gray-100 bg-amber-50/50">
+                          <p className="text-xs text-amber-700 font-medium flex items-center gap-1.5 mb-1">
+                            <MessageSquare className="w-3.5 h-3.5" /> Indicaciones del estudiante
+                          </p>
+                          <p className="text-sm text-gray-700 whitespace-pre-line">{r.comentario_estudiante}</p>
+                        </div>
+                      )}
+
                       {/* Documentos */}
                       <div className="px-4 py-3 space-y-2 border-b border-gray-100">
                         {r.documentos.map(d => (

@@ -338,40 +338,46 @@ export const GestionUsuariosPage: React.FC = () => {
               <p className="text-sm font-medium">No se encontraron usuarios</p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="text-left px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">#</th>
-                  <th className="text-left px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">Nombre</th>
-                  <th className="text-left px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs hidden md:table-cell">Correo</th>
-                  <th className="text-left px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">Rol</th>
-                  <th className="text-left px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">Estado</th>
-                  <th className="text-right px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">Acciones</th>
+                  <th className="text-left px-3 sm:px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs hidden sm:table-cell">#</th>
+                  <th className="text-left px-3 sm:px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">Nombre</th>
+                  <th className="text-left px-3 sm:px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs hidden md:table-cell">Correo</th>
+                  <th className="text-left px-3 sm:px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs hidden sm:table-cell">Rol</th>
+                  <th className="text-left px-3 sm:px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">Estado</th>
+                  <th className="text-right px-3 sm:px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {filtered.map(u => (
                   <tr key={u.id_usuario} className="hover:bg-gray-50/60 transition-colors">
-                    <td className="px-5 py-4 text-gray-400 font-medium">{u.id_usuario}</td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
+                    <td className="px-3 sm:px-5 py-4 text-gray-400 font-medium hidden sm:table-cell">{u.id_usuario}</td>
+                    <td className="px-3 sm:px-5 py-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <div className="w-8 h-8 rounded-full bg-[#1A365D] text-white flex items-center justify-center font-normal text-xs shrink-0">
                           {u.nombre.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                         </div>
-                        <span className="font-normal text-gray-800">{u.nombre}</span>
+                        <div className="min-w-0">
+                          <span className="font-normal text-gray-800 block truncate max-w-[120px] sm:max-w-none">{u.nombre}</span>
+                          <span className={`sm:hidden inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${ROL_COLOR[u.rol] ?? 'bg-gray-100 text-gray-600'}`}>
+                            {ROL_LABEL[u.rol] ?? u.rol}
+                          </span>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-gray-500 font-medium hidden md:table-cell">{u.correo}</td>
-                    <td className="px-5 py-4">
+                    <td className="px-3 sm:px-5 py-4 text-gray-500 font-medium hidden md:table-cell">{u.correo}</td>
+                    <td className="px-3 sm:px-5 py-4 hidden sm:table-cell">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${ROL_COLOR[u.rol] ?? 'bg-gray-100 text-gray-600'}`}>
                         {ROL_LABEL[u.rol] ?? u.rol}
                       </span>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-3 sm:px-5 py-4">
                       <button
                         onClick={() => handleToggle(u.id_usuario)}
                         disabled={toggling === u.id_usuario}
-                        className={`px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-opacity disabled:opacity-50
+                        className={`px-2 sm:px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium cursor-pointer transition-opacity disabled:opacity-50 whitespace-nowrap
                           ${u.estado === 'activo' ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}
                       >
                         {toggling === u.id_usuario
@@ -379,8 +385,8 @@ export const GestionUsuariosPage: React.FC = () => {
                           : u.estado === 'activo' ? 'Activo' : 'Inactivo'}
                       </button>
                     </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="px-3 sm:px-5 py-4">
+                      <div className="flex items-center justify-end gap-1 sm:gap-2">
                         <button
                           onClick={() => setEditTarget(u)}
                           title="Editar"
@@ -401,6 +407,7 @@ export const GestionUsuariosPage: React.FC = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
 

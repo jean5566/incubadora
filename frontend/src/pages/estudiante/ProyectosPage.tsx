@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { FolderKanban, Plus, X, ClipboardList, Calendar, Tag, Lightbulb, Target, FileText, User } from 'lucide-react';
-import { getMisProyectos, crearProyecto, type Proyecto } from '../../api';
+import { FolderKanban, Plus, Pencil, X, ClipboardList, Calendar, Tag, Lightbulb, Target, FileText, User } from 'lucide-react';
+import { getMisProyectos, crearProyecto, editarProyecto, type Proyecto } from '../../api';
 
 const ESTADO_COLOR: Record<string, string> = {
   pendiente:   'bg-yellow-100 text-yellow-700',
@@ -22,6 +22,7 @@ export const ProyectosPage: React.FC = () => {
   const [error, setError]             = useState('');
   const [showModal, setShowModal]     = useState(false);
   const [detalle, setDetalle]         = useState<Proyecto | null>(null);
+  const [editTarget, setEditTarget]   = useState<Proyecto | null>(null);
 
   // form
   const [nombre, setNombre]                   = useState('');
@@ -43,27 +44,56 @@ export const ProyectosPage: React.FC = () => {
 
   useEffect(() => { load(); }, []);
 
+  const openCreate = () => {
+    setEditTarget(null);
+    setNombre('');
+    setDescripcion('');
+    setSector('');
+    setProblema('');
+    setPropuesta('');
+    setFormError('');
+    setShowModal(true);
+  };
+
+  const openEdit = (p: Proyecto) => {
+    setEditTarget(p);
+    setNombre(p.nombre_proyecto);
+    setDescripcion(p.descripcion);
+    setSector(p.sector_tecnologico ?? '');
+    setProblema(p.problema_resuelve ?? '');
+    setPropuesta(p.propuesta_valor ?? '');
+    setFormError('');
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditTarget(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
     setSaving(true);
     try {
-      const { data } = await crearProyecto({
+      const payload = {
         nombre_proyecto:    nombre,
         descripcion,
         sector_tecnologico: sector     || undefined,
         problema_resuelve:  problema   || undefined,
         propuesta_valor:    propuesta  || undefined,
-      });
-      setProyectos(prev => [data, ...prev]);
-      setNombre('');
-      setDescripcion('');
-      setSector('');
-      setProblema('');
-      setPropuesta('');
-      setShowModal(false);
+      };
+      if (editTarget) {
+        const { data } = await editarProyecto(editTarget.id_proyecto, payload);
+        setProyectos(prev => prev.map(p => p.id_proyecto === data.id_proyecto ? data : p));
+        setDetalle(prev => prev && prev.id_proyecto === data.id_proyecto ? data : prev);
+      } else {
+        const { data } = await crearProyecto(payload);
+        setProyectos(prev => [data, ...prev]);
+      }
+      closeModal();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Error al crear el proyecto.');
+      setFormError(err instanceof Error ? err.message : 'Error al guardar el proyecto.');
     } finally {
       setSaving(false);
     }
@@ -85,7 +115,7 @@ export const ProyectosPage: React.FC = () => {
             </p>
           </div>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={openCreate}
             className="flex items-center gap-2 px-4 py-2.5 bg-[#1A365D] hover:bg-[#0F2442] text-white text-sm font-medium rounded-lg transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Nuevo proyecto
@@ -119,9 +149,20 @@ export const ProyectosPage: React.FC = () => {
               >
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <FolderKanban className="w-4 h-4 text-[#1A365D] mt-0.5 shrink-0" />
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${ESTADO_COLOR[p.estado]}`}>
-                    {ESTADO_LABEL[p.estado]}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${ESTADO_COLOR[p.estado]}`}>
+                      {ESTADO_LABEL[p.estado]}
+                    </span>
+                    {p.estado === 'pendiente' && (
+                      <button
+                        onClick={e => { e.stopPropagation(); openEdit(p); }}
+                        title="Editar proyecto"
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-[#1A365D] hover:bg-[#EBF8FF] transition-colors cursor-pointer"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <h3 className="text-sm font-medium text-gray-800 mb-1 line-clamp-1">{p.nombre_proyecto}</h3>
@@ -236,10 +277,18 @@ export const ProyectosPage: React.FC = () => {
 
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-100 shrink-0">
+            <div className="px-6 py-4 border-t border-gray-100 flex gap-3 shrink-0">
+              {detalle.estado === 'pendiente' && (
+                <button
+                  onClick={() => { const p = detalle; setDetalle(null); openEdit(p); }}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#1A365D] hover:bg-[#0F2442] text-white text-sm font-medium rounded-lg transition-colors cursor-pointer"
+                >
+                  <Pencil className="w-4 h-4" /> Editar proyecto
+                </button>
+              )}
               <button
                 onClick={() => setDetalle(null)}
-                className="w-full py-2.5 text-sm font-normal text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                className={`${detalle.estado === 'pendiente' ? 'px-4' : 'flex-1'} py-2.5 text-sm font-normal text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer`}
               >
                 Cerrar
               </button>
@@ -257,9 +306,9 @@ export const ProyectosPage: React.FC = () => {
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <ClipboardList className="w-5 h-5 text-[#1A365D]" />
-                <h2 className="text-base font-medium text-[#1A365D]">Registrar Proyecto</h2>
+                <h2 className="text-base font-medium text-[#1A365D]">{editTarget ? 'Editar Proyecto' : 'Registrar Proyecto'}</h2>
               </div>
-              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+              <button onClick={closeModal} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
                 <X className="w-4 h-4 text-gray-500" />
               </button>
             </div>
@@ -333,13 +382,13 @@ export const ProyectosPage: React.FC = () => {
                 {saving ? (
                   <span className="flex items-center justify-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Registrando...
+                    {editTarget ? 'Guardando...' : 'Registrando...'}
                   </span>
-                ) : 'Registrar proyecto'}
+                ) : editTarget ? 'Guardar cambios' : 'Registrar proyecto'}
               </button>
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={closeModal}
                 className="px-4 py-2.5 text-sm font-normal text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 Cancelar

@@ -316,38 +316,39 @@ export const AprobarProyectosPage: React.FC = () => {
               <p className="text-sm font-medium">No hay proyectos que mostrar</p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="text-left px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">#</th>
-                  <th className="text-left px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">Proyecto</th>
-                  <th className="text-left px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs hidden md:table-cell">Estudiante</th>
-                  <th className="text-left px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs hidden lg:table-cell">Fecha</th>
-                  <th className="text-left px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">Estado</th>
-                  <th className="text-right px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">Acción</th>
+                  <th className="text-left px-3 sm:px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs hidden sm:table-cell">#</th>
+                  <th className="text-left px-3 sm:px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">Proyecto</th>
+                  <th className="text-left px-3 sm:px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs hidden md:table-cell">Estudiante</th>
+                  <th className="text-left px-3 sm:px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs hidden lg:table-cell">Fecha</th>
+                  <th className="text-left px-3 sm:px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">Estado</th>
+                  <th className="text-right px-3 sm:px-5 py-3.5 font-medium text-gray-500 uppercase tracking-wider text-xs">Acción</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {filtered.map(p => (
                   <tr key={p.id_proyecto} className="hover:bg-gray-50/60 transition-colors">
-                    <td className="px-5 py-4 text-gray-400 font-medium">{p.id_proyecto}</td>
-                    <td className="px-5 py-4">
+                    <td className="px-3 sm:px-5 py-4 text-gray-400 font-medium hidden sm:table-cell">{p.id_proyecto}</td>
+                    <td className="px-3 sm:px-5 py-4 max-w-[160px] sm:max-w-none">
                       <p className="font-normal text-gray-800 line-clamp-1">{p.nombre_proyecto}</p>
                       <p className="text-xs text-gray-400 font-medium mt-0.5 line-clamp-1">{p.descripcion}</p>
                     </td>
-                    <td className="px-5 py-4 hidden md:table-cell">
+                    <td className="px-3 sm:px-5 py-4 hidden md:table-cell">
                       <p className="font-normal text-gray-700 text-xs">{p.usuario?.nombre ?? '—'}</p>
                       <p className="text-xs text-gray-400">{p.usuario?.correo ?? ''}</p>
                     </td>
-                    <td className="px-5 py-4 text-xs text-gray-400 font-medium hidden lg:table-cell">
+                    <td className="px-3 sm:px-5 py-4 text-xs text-gray-400 font-medium hidden lg:table-cell">
                       {new Date(p.fecha_registro.replace(' ', 'T')).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
-                    <td className="px-5 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${ESTADO_COLOR[p.estado]}`}>
+                    <td className="px-3 sm:px-5 py-4">
+                      <span className={`px-2 sm:px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium whitespace-nowrap ${ESTADO_COLOR[p.estado]}`}>
                         {ESTADO_LABEL[p.estado]}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-3 sm:px-5 py-4 text-right">
                       <button
                         onClick={() => setDetalle(p)}
                         title="Ver detalles"
@@ -360,6 +361,7 @@ export const AprobarProyectosPage: React.FC = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
 

@@ -44,17 +44,19 @@ class RevisionController extends Controller
         abort_unless($seguimiento->proyecto->id_usuario === $request->user()->id_usuario, 403);
         abort_unless(is_null($seguimiento->fecha_fin), 422, 'Esta etapa ya fue cerrada.');
 
-        $request->validate([
-            'archivos'   => 'required|array|min:1',
-            'archivos.*' => 'file|max:15360',
-            'nombres'    => 'required|array|min:1',
-            'nombres.*'  => 'required|string|max:200',
+        $validated = $request->validate([
+            'archivos'              => 'required|array|min:1',
+            'archivos.*'            => 'file|max:15360',
+            'nombres'                => 'required|array|min:1',
+            'nombres.*'              => 'required|string|max:200',
+            'comentario_estudiante' => 'nullable|string|max:2000',
         ]);
 
         $revision = Revision::create([
-            'id_seguimiento' => $seguimiento->id_seguimiento,
-            'fecha_envio'    => now()->toDateString(),
-            'observaciones'  => null,
+            'id_seguimiento'         => $seguimiento->id_seguimiento,
+            'fecha_envio'            => now()->toDateString(),
+            'comentario_estudiante'  => $validated['comentario_estudiante'] ?? null,
+            'observaciones'          => null,
         ]);
 
         $archivosSubidos = [];

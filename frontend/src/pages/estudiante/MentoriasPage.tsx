@@ -250,6 +250,7 @@ const RevisionesPanel: React.FC<{ id_seguimiento: number; finalizada: boolean }>
   const [exito, setExito]             = useState('');
   const [archivos, setArchivos]       = useState<File[]>([]);
   const [nombres, setNombres]         = useState<string[]>([]);
+  const [comentario, setComentario]   = useState('');
   const fileRef                       = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -277,10 +278,11 @@ const RevisionesPanel: React.FC<{ id_seguimiento: number; finalizada: boolean }>
     if (nombres.some(n => !n.trim())) { setError('Todos los archivos deben tener nombre.'); return; }
     setEnviando(true); setError(''); setExito('');
     try {
-      const { data } = await crearRevision(id_seguimiento, nombres, archivos);
+      const { data } = await crearRevision(id_seguimiento, nombres, archivos, comentario.trim() || undefined);
       setRevisiones(prev => [...prev, data]);
       setArchivos([]);
       setNombres([]);
+      setComentario('');
       setExito('Entrega enviada exitosamente.');
       setTimeout(() => setExito(''), 3000);
     } catch (e) {
@@ -302,6 +304,17 @@ const RevisionesPanel: React.FC<{ id_seguimiento: number; finalizada: boolean }>
       ) : (
         <div className="space-y-3">
           <p className="text-xs font-medium text-[#1A365D] uppercase tracking-wider">Nueva entrega</p>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Comentario (opcional) — indica al mentor lo que necesitas que revise</label>
+            <textarea
+              value={comentario}
+              onChange={e => setComentario(e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 outline-none focus:border-[#1A365D] transition-all resize-none"
+              placeholder="Ej: Adjunto la versión actualizada del MVP, falta revisar el módulo de pagos..."
+            />
+          </div>
 
           {archivos.length > 0 && (
             <div className="space-y-2">
@@ -372,6 +385,16 @@ const RevisionesPanel: React.FC<{ id_seguimiento: number; finalizada: boolean }>
                   </span>
                 )}
               </div>
+
+              {/* Comentario del estudiante */}
+              {r.comentario_estudiante && (
+                <div className="px-4 py-3 border-b border-gray-100 bg-amber-50/50">
+                  <p className="text-xs text-amber-700 font-medium flex items-center gap-1.5 mb-1">
+                    <MessageSquare className="w-3.5 h-3.5" /> Tu comentario
+                  </p>
+                  <p className="text-sm text-gray-700 whitespace-pre-line">{r.comentario_estudiante}</p>
+                </div>
+              )}
 
               {/* Documentos */}
               <div className="px-4 py-3 space-y-1.5">

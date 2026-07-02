@@ -221,6 +221,39 @@ class ProyectoController extends Controller
     }
 
     /**
+     * Actualiza un proyecto existente (solo el emprendedor dueño).
+     */
+    public function update(Request $request, Proyecto $proyecto)
+    {
+        abort_unless($request->user()->rol === 'emprendedor', 403, 'Solo emprendedores pueden editar proyectos.');
+        abort_unless($proyecto->id_usuario === $request->user()->id_usuario, 403, 'No eres el dueño de este proyecto.');
+        abort_unless($proyecto->estado === 'pendiente', 422, 'Solo se pueden editar proyectos pendientes de revisión.');
+
+        $validated = $request->validate([
+            'nombre_proyecto'    => 'required|string|max:200',
+            'descripcion'        => 'required|string|max:2000',
+            'sector_tecnologico' => 'nullable|string|max:200',
+            'problema_resuelve'  => 'nullable|string|max:2000',
+            'propuesta_valor'    => 'nullable|string|max:2000',
+        ], [
+            'nombre_proyecto.required' => 'El nombre del proyecto es obligatorio.',
+            'descripcion.required'     => 'La descripción es obligatoria.',
+        ]);
+
+        $proyecto->nombre_proyecto    = $validated['nombre_proyecto'];
+        $proyecto->descripcion        = $validated['descripcion'];
+        $proyecto->sector_tecnologico = $validated['sector_tecnologico'] ?? null;
+        $proyecto->problema_resuelve  = $validated['problema_resuelve']  ?? null;
+        $proyecto->propuesta_valor    = $validated['propuesta_valor']     ?? null;
+        $proyecto->save();
+
+        return response()->json([
+            'message' => 'Proyecto actualizado exitosamente.',
+            'data'    => $proyecto,
+        ]);
+    }
+
+    /**
      * Lista las entregas de un proyecto (emprendedor dueño o mentor asignado).
      */
     public function indexEntregas(Request $request, Proyecto $proyecto)

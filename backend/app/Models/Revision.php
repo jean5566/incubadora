@@ -12,7 +12,7 @@ class Revision extends Model
     protected $primaryKey = 'id_revision';
     public    $timestamps = false;
 
-    protected $fillable = ['id_seguimiento', 'fecha_envio', 'observaciones', 'revisado'];
+    protected $fillable = ['id_seguimiento', 'fecha_envio', 'comentario_estudiante', 'observaciones', 'revisado'];
 
     protected $casts = ['revisado' => 'boolean'];
 
