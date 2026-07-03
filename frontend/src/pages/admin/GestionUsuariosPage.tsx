@@ -28,9 +28,10 @@ interface FormData {
   correo: string;
   rol: string;
   clave: string;
+  estado: 'activo' | 'inactivo';
 }
 
-const EMPTY_FORM: FormData = { nombre: '', correo: '', rol: 'emprendedor', clave: '' };
+const EMPTY_FORM: FormData = { nombre: '', correo: '', rol: 'emprendedor', clave: '', estado: 'activo' };
 
 // ── modal reutilizable ────────────────────────────────────────────────────────
 
@@ -106,6 +107,15 @@ const UserForm: React.FC<UserFormProps> = ({ initial, isEdit, onSubmit, onCancel
           ))}
         </select>
       </div>
+      {isEdit && (
+        <div>
+          <label className={labelCls}>Estado</label>
+          <select value={form.estado} onChange={set('estado')} className={inputCls}>
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+          </select>
+        </div>
+      )}
       <div>
         <label className={labelCls}>
           {isEdit ? 'Nueva contraseña (dejar vacío para no cambiar)' : 'Contraseña'}
@@ -231,10 +241,11 @@ export const GestionUsuariosPage: React.FC = () => {
   // editar
   const handleEdit = async (form: FormData) => {
     if (!editTarget) return;
-    const payload: { nombre: string; correo: string; rol: string; clave?: string } = {
+    const payload: { nombre: string; correo: string; rol: string; clave?: string; estado?: string } = {
       nombre: form.nombre,
       correo: form.correo,
       rol:    form.rol,
+      estado: form.estado,
     };
     if (form.clave) payload.clave = form.clave;
     const { data } = await editarUsuario(editTarget.id_usuario, payload);
@@ -429,7 +440,7 @@ export const GestionUsuariosPage: React.FC = () => {
       {editTarget && (
         <Modal title="Editar usuario" onClose={() => setEditTarget(null)}>
           <UserForm
-            initial={{ nombre: editTarget.nombre, correo: editTarget.correo, rol: editTarget.rol, clave: '' }}
+            initial={{ nombre: editTarget.nombre, correo: editTarget.correo, rol: editTarget.rol, clave: '', estado: editTarget.estado }}
             isEdit={true}
             onSubmit={handleEdit}
             onCancel={() => setEditTarget(null)}

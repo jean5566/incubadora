@@ -145,10 +145,18 @@ class AdminController extends Controller
             'correo' => 'required|email|max:150|unique:usuarios,correo,' . $usuario->id_usuario . ',id_usuario',
             'rol'    => 'required|in:administrador,mentor,emprendedor',
             'clave'  => 'nullable|string|min:8',
+            'estado' => 'nullable|in:activo,inactivo',
         ], [
             'correo.unique' => 'Este correo ya está registrado por otro usuario.',
             'clave.min'     => 'La contraseña debe tener al menos 8 caracteres.',
         ]);
+
+        abort_if(
+            $usuario->id_usuario === $request->user()->id_usuario
+                && ($validated['estado'] ?? $usuario->estado) === 'inactivo',
+            400,
+            'No puedes desactivar tu propia cuenta.'
+        );
 
         $rolAnterior = $usuario->rol;
 
@@ -157,6 +165,9 @@ class AdminController extends Controller
         $usuario->rol    = $validated['rol'];
         if (!empty($validated['clave'])) {
             $usuario->clave = Hash::make($validated['clave']);
+        }
+        if (!empty($validated['estado'])) {
+            $usuario->estado = $validated['estado'];
         }
         $usuario->save();
 

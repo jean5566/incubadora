@@ -206,7 +206,7 @@ export async function crearUsuario(data: { nombre: string; correo: string; rol: 
   });
 }
 
-export async function editarUsuario(id: number, data: { nombre: string; correo: string; rol: string; clave?: string }) {
+export async function editarUsuario(id: number, data: { nombre: string; correo: string; rol: string; clave?: string; estado?: string }) {
   return request<{ message: string; data: UsuarioAdmin }>(`/usuarios/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
