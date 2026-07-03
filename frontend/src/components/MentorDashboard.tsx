@@ -292,13 +292,19 @@ export const MentorDashboard: React.FC<MentorDashboardProps> = ({ user, onLogout
 
       {/* Main */}
       <div className="flex-1 flex flex-col relative overflow-hidden">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between lg:justify-end gap-2 px-4 sm:px-6 lg:px-8 z-10 shrink-0">
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="lg:hidden p-2 -ml-2 rounded-lg text-gray-500 hover:bg-gray-100 cursor-pointer"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between gap-2 px-4 sm:px-6 lg:px-8 z-10 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 -ml-2 rounded-lg text-gray-500 hover:bg-gray-100 cursor-pointer shrink-0"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2 min-w-0">
+              <img src="/logo.png" alt="Logo" className="h-8 w-auto object-contain shrink-0" />
+              <span className="hidden sm:inline text-lg font-bold text-[#0f766e] tracking-tight truncate">Tecnologías de la Información</span>
+            </div>
+          </div>
           <div className="flex items-center gap-2">
             <NotificacionesBell accentColor="#0f766e" />
             <div
