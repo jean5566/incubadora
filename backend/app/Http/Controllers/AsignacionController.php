@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Asignacion;
 use App\Models\Notificacion;
 use App\Models\Proyecto;
+use App\Models\Seguimiento;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -80,6 +81,14 @@ class AsignacionController extends Controller
             $proyecto->id_docente = $usuario->id_usuario;
             $proyecto->save();
 
+            // Si el proyecto ya tenía una mentoría activa (de un mentor anterior),
+            // transferirla al nuevo mentor en vez de dejarla huérfana: así se preserva
+            // la etapa/progreso y las entregas del estudiante llegan al mentor correcto.
+            Seguimiento::where('id_proyecto', $proyecto->id_proyecto)
+                ->whereNull('fecha_fin')
+                ->where('id_mentor', '!=', $usuario->id_usuario)
+                ->update(['id_mentor' => $usuario->id_usuario]);
+
             // Notificar al mentor
             Notificacion::create([
                 'id_usuario' => $usuario->id_usuario,
@@ -112,7 +121,9 @@ class AsignacionController extends Controller
 
         $asignacion->load('usuario:id_usuario,rol');
 
-        // Si se elimina la asignación del mentor, limpiar id_docente del proyecto
+        // Si se elimina la asignación del mentor, limpiar id_docente del proyecto.
+        // (La mentoría activa, si existe, se transfiere al nuevo mentor cuando se
+        // asigne uno — ver AsignacionController::store — para no perder el progreso.)
         if ($asignacion->usuario?->rol === 'mentor') {
             Proyecto::where('id_proyecto', $asignacion->id_proyecto)
                 ->where('id_docente', $asignacion->id_usuario)

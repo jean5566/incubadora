@@ -21,9 +21,9 @@ class SeguimientoController extends Controller
             'id_proyecto' => 'required|exists:proyectos,id_proyecto',
         ]);
 
-        // Evitar duplicado: si ya existe un seguimiento activo (sin fecha_fin) para este proyecto y mentor
+        // Evitar duplicado: si ya existe un seguimiento activo (sin fecha_fin) para este proyecto,
+        // sin importar el mentor (solo puede haber una mentoría activa por proyecto a la vez)
         $activo = Seguimiento::where('id_proyecto', $validated['id_proyecto'])
-            ->where('id_mentor', $request->user()->id_usuario)
             ->whereNull('fecha_fin')
             ->exists();
 
