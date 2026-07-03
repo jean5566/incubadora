@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { login as apiLogin, register as apiRegister, type User as UserType } from '../api';
-import { Mail, Lock, User, Briefcase, ChevronRight, LogIn, UserPlus, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, Briefcase, ChevronRight, LogIn, UserPlus, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 interface LoginProps {
   onLogin: (user: UserType, token: string) => void;
@@ -21,6 +21,10 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error,     setError]     = useState('');
   const [success,   setSuccess]   = useState('');
+
+  const [showLoginClave,    setShowLoginClave]    = useState(false);
+  const [showClave,         setShowClave]         = useState(false);
+  const [showConfirmacion,  setShowConfirmacion]  = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,18 +223,27 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     <Lock className="h-5 w-5" />
                   </div>
                   <input
-                    type="password"
+                    type={showLoginClave ? 'text' : 'password'}
                     value={loginClave}
                     onChange={e => setLoginClave(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full pl-11 pr-4 py-3 border-white/10 bg-white/5 text-white placeholder-blue-200/40 focus:outline-none focus:border-blue-400 focus:bg-white/10 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200 border rounded-2xl"
+                    className="w-full pl-11 pr-11 py-3 border-white/10 bg-white/5 text-white placeholder-blue-200/40 focus:outline-none focus:border-blue-400 focus:bg-white/10 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200 border rounded-2xl"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginClave(v => !v)}
+                    tabIndex={-1}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-blue-200/50 hover:text-blue-200 transition-colors"
+                    aria-label={showLoginClave ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    {showLoginClave ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
               </div>
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isLoading} 
                 className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 px-4 bg-white hover:bg-blue-50 text-[#1A365D] font-semibold shadow-lg shadow-black/20 transition-all duration-300 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed group rounded-2xl"
               >
@@ -298,14 +311,23 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     <Lock className="h-4 w-4" />
                   </div>
                   <input
-                    type="password"
+                    type={showClave ? 'text' : 'password'}
                     value={clave}
                     onChange={e => setClave(e.target.value)}
                     placeholder="Mín. 8"
                     required
                     minLength={8}
-                    className="w-full pl-9 pr-3 py-2.5 text-sm border-white/10 bg-white/5 text-white placeholder-blue-200/40 focus:outline-none focus:border-blue-400 focus:bg-white/10 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200 border rounded-2xl"
+                    className="w-full pl-9 pr-9 py-2.5 text-sm border-white/10 bg-white/5 text-white placeholder-blue-200/40 focus:outline-none focus:border-blue-400 focus:bg-white/10 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200 border rounded-2xl"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowClave(v => !v)}
+                    tabIndex={-1}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-blue-200/50 hover:text-blue-200 transition-colors"
+                    aria-label={showClave ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    {showClave ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -316,17 +338,26 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     <CheckCircle2 className="h-4 w-4" />
                   </div>
                   <input
-                    type="password"
+                    type={showConfirmacion ? 'text' : 'password'}
                     value={confirmacion}
                     onChange={e => setConfirmacion(e.target.value)}
                     placeholder="Repetir"
                     required
-                    className={`w-full pl-9 pr-3 py-2.5 text-sm border bg-white/5 text-white placeholder-blue-200/40 focus:outline-none focus:bg-white/10 focus:ring-2 transition-all duration-200 rounded-2xl ${
+                    className={`w-full pl-9 pr-9 py-2.5 text-sm border bg-white/5 text-white placeholder-blue-200/40 focus:outline-none focus:bg-white/10 focus:ring-2 transition-all duration-200 rounded-2xl ${
                       confirmacion && clave !== confirmacion
                         ? 'border-red-400/50 focus:border-red-400 focus:ring-red-400/20'
                         : 'border-white/10 focus:border-blue-400 focus:ring-blue-400/20'
                     }`}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmacion(v => !v)}
+                    tabIndex={-1}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-blue-200/50 hover:text-blue-200 transition-colors"
+                    aria-label={showConfirmacion ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    {showConfirmacion ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
 
