@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft, AlertCircle, X, ChevronRight, FileText,
+  ArrowLeft, AlertCircle, X, ChevronRight,
   Download, Save, MessageSquare, Upload, User, Calendar,
-  CheckCircle2, Clock, Flag,
+  CheckCircle2, Clock, Flag, GraduationCap, Paperclip, RotateCcw,
 } from 'lucide-react';
 import {
   getMisProyectosAsignados, getSeguimientosProyecto, avanzarEtapa,
-  getRevisiones, guardarObservacionesRevision,
+  getRevisiones, guardarObservacionesRevision, reabrirRevision,
   descargarDocumento, type ProyectoConUsuario, type Seguimiento, type Revision,
 } from '../../api';
 
@@ -31,7 +31,20 @@ export const SeguimientoDetallePage: React.FC = () => {
   const [obsRevision, setObsRevision]     = useState<Record<number, string>>({});
   const [guardandoRev, setGuardandoRev]   = useState<number | null>(null);
   const [guardadoRevOk, setGuardadoRevOk] = useState<number | null>(null);
+  const [descargando, setDescargando]     = useState<number | null>(null);
+  const [reabriendo, setReabriendo]       = useState<number | null>(null);
   const loadedRevs = useRef<Set<number>>(new Set());
+
+  const handleDescargar = async (id_documento: number, nombre: string) => {
+    setDescargando(id_documento); setError('');
+    try {
+      await descargarDocumento(id_documento, nombre);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo descargar el archivo.');
+    } finally {
+      setDescargando(null);
+    }
+  };
 
   useEffect(() => {
     Promise.all([getMisProyectosAsignados(), getSeguimientosProyecto(id)])
@@ -94,6 +107,26 @@ export const SeguimientoDetallePage: React.FC = () => {
     }
   };
 
+  const handleReabrir = async (id_revision: number) => {
+    setReabriendo(id_revision); setError('');
+    try {
+      await reabrirRevision(id_revision);
+      setRevisiones(prev => {
+        const updated = { ...prev };
+        for (const key in updated) {
+          updated[key] = updated[key].map(r =>
+            r.id_revision === id_revision ? { ...r, revisado: false } : r
+          );
+        }
+        return updated;
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error al reabrir la revisión.');
+    } finally {
+      setReabriendo(null);
+    }
+  };
+
   const activo   = lista.find(s => !s.fecha_fin);
   const etapaIdx = activo ? ETAPAS.indexOf(activo.etapa?.nombre_etapa ?? '') : -1;
   const completada = !activo && lista.length > 0;
@@ -134,9 +167,14 @@ export const SeguimientoDetallePage: React.FC = () => {
   );
 
   const seg        = lista.find(s => s.etapa?.nombre_etapa === ETAPAS[tab]);
-  const revs       = seg ? revisiones[seg.id_seguimiento] : undefined;
+  const revsRaw    = seg ? revisiones[seg.id_seguimiento] : undefined;
   const cargandoR  = seg ? loadingRevs[seg.id_seguimiento] : false;
-  const revisadas  = revs ? revs.filter(r => r.revisado).length : 0;
+  const revisadas  = revsRaw ? revsRaw.filter(r => r.revisado).length : 0;
+
+  // Orden explícito por fecha de envío — no depende del orden en que la API devuelva las entregas.
+  const revs = revsRaw
+    ? [...revsRaw].sort((a, b) => a.fecha_envio === b.fecha_envio ? a.id_revision - b.id_revision : a.fecha_envio.localeCompare(b.fecha_envio))
+    : revsRaw;
 
   const etapaSiguiente = activo && etapaIdx < ETAPAS.length - 1 ? ETAPAS[etapaIdx + 1] : null;
   const esUltimaEtapa  = etapaIdx === ETAPAS.length - 1;
@@ -380,96 +418,112 @@ export const SeguimientoDetallePage: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {revs.map((r, i) => (
-                    <div key={r.id_revision} className={`rounded-xl border overflow-hidden ${r.revisado ? 'border-teal-100' : 'border-gray-100'}`}>
+                    <div key={r.id_revision} className="rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow bg-white">
 
-                      {/* Header entrega */}
-                      <div className={`flex items-center justify-between px-4 py-2.5 ${r.revisado ? 'bg-teal-50/60' : 'bg-gray-50'}`}>
-                        <div className="flex items-center gap-2">
-                          {r.revisado
-                            ? <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
-                            : <Clock className="w-3.5 h-3.5 text-amber-400" />
-                          }
-                          <span className="text-xs font-medium text-gray-700">
-                            Entrega #{i + 1}
-                          </span>
-                          <span className="text-xs text-gray-400">·</span>
-                          <span className="text-xs text-gray-400">
+                      {/* Header tipo tarea */}
+                      <div className={`flex items-center gap-3 px-4 py-3 border-b ${r.revisado ? 'bg-teal-50/60 border-teal-100' : 'bg-amber-50/60 border-amber-100'}`}>
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0 ${r.revisado ? 'bg-teal-600' : 'bg-amber-500'}`}>
+                          {i + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-800">Entrega #{i + 1}</p>
+                          <p className="flex items-center gap-1 text-[11px] text-gray-500">
+                            <Calendar className="w-3 h-3" />
                             {new Date(r.fecha_envio + 'T00:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
-                          </span>
+                          </p>
                         </div>
-                        {r.revisado && (
-                          <span className="text-[10px] font-medium text-teal-700 bg-teal-100 rounded-full px-2 py-0.5">
-                            Revisado
-                          </span>
-                        )}
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full border shrink-0 ${
+                          r.revisado ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                        }`}>
+                          {r.revisado ? <GraduationCap className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                          {r.revisado ? 'Revisado' : 'Pendiente'}
+                        </span>
                       </div>
 
-                      {/* Comentario del estudiante */}
-                      {r.comentario_estudiante && (
-                        <div className="px-4 py-3 border-b border-gray-100 bg-amber-50/50">
-                          <p className="text-xs text-amber-700 font-medium flex items-center gap-1.5 mb-1">
-                            <MessageSquare className="w-3.5 h-3.5" /> Indicaciones del estudiante
-                          </p>
-                          <p className="text-sm text-gray-700 whitespace-pre-line">{r.comentario_estudiante}</p>
-                        </div>
-                      )}
-
-                      {/* Documentos */}
-                      <div className="px-4 py-3 space-y-2 border-b border-gray-100">
-                        {r.documentos.map(d => (
-                          <div key={d.id_documento} className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
-                            <FileText className="w-4 h-4 text-gray-400 shrink-0" />
-                            <p className="text-sm text-gray-700 flex-1 truncate">{d.nombre}</p>
-                            <button
-                              onClick={() => descargarDocumento(d.id_documento, d.nombre)}
-                              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0f766e] text-white text-xs rounded-lg hover:bg-[#115e59] transition-colors shrink-0 cursor-pointer"
-                            >
-                              <Download className="w-3.5 h-3.5" /> Descargar
-                            </button>
+                      <div className="p-4 space-y-3">
+                        {/* Comentario del estudiante — estilo nota adhesiva */}
+                        {r.comentario_estudiante && (
+                          <div className="bg-amber-50/60 border-l-4 border-amber-300 rounded-r-lg px-3 py-2">
+                            <p className="text-[11px] text-amber-700 font-semibold flex items-center gap-1.5 mb-1">
+                              <MessageSquare className="w-3.5 h-3.5" /> Indicaciones del estudiante
+                            </p>
+                            <p className="text-sm text-gray-700 whitespace-pre-line">{r.comentario_estudiante}</p>
                           </div>
-                        ))}
-                      </div>
+                        )}
 
-                      {/* Observaciones */}
-                      <div className="px-4 py-3">
-                        <div className="flex items-center gap-1.5 mb-2">
-                          <MessageSquare className="w-3.5 h-3.5 text-gray-400" />
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Observaciones del mentor</p>
+                        {/* Documentos adjuntos como chips descargables */}
+                        <div className="flex flex-wrap gap-2">
+                          {r.documentos.map(d => (
+                            <button
+                              key={d.id_documento}
+                              type="button"
+                              onClick={() => handleDescargar(d.id_documento, d.nombre)}
+                              disabled={descargando === d.id_documento}
+                              title={`Descargar ${d.nombre}`}
+                              className="group inline-flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full pl-2 pr-3 py-1 hover:bg-teal-50 hover:border-teal-200 transition-colors cursor-pointer disabled:opacity-60"
+                            >
+                              <Paperclip className="w-3 h-3 text-gray-400 group-hover:text-[#0f766e] shrink-0" />
+                              <span className="text-xs text-gray-700 truncate max-w-[160px]">{d.nombre}</span>
+                              {descargando === d.id_documento
+                                ? <div className="w-3 h-3 border-2 border-[#0f766e] border-t-transparent rounded-full animate-spin shrink-0" />
+                                : <Download className="w-3 h-3 text-gray-400 group-hover:text-[#0f766e] shrink-0" />}
+                            </button>
+                          ))}
                         </div>
 
-                        {r.revisado ? (
-                          <p className="text-sm text-gray-700 whitespace-pre-line bg-gray-50 rounded-lg px-3 py-2.5 border border-gray-100 leading-relaxed">
-                            {r.observaciones || <span className="text-gray-400 italic">Sin observaciones registradas.</span>}
+                        {/* Retroalimentación del mentor */}
+                        <div>
+                          <p className="text-[11px] text-gray-400 font-semibold flex items-center gap-1.5 mb-1.5 uppercase tracking-wide">
+                            <GraduationCap className="w-3.5 h-3.5" /> Tu retroalimentación
                           </p>
-                        ) : (
-                          <div className="space-y-2">
-                            <textarea
-                              value={obsRevision[r.id_revision] ?? ''}
-                              onChange={e => setObsRevision(prev => ({ ...prev, [r.id_revision]: e.target.value }))}
-                              rows={3}
-                              placeholder="Escribe tus observaciones para esta entrega..."
-                              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 outline-none resize-none focus:ring-2 focus:ring-teal-100 focus:border-[#0f766e] transition-all"
-                            />
-                            <div className="flex items-center justify-end gap-3">
-                              {guardadoRevOk === r.id_revision && (
-                                <span className="text-xs text-teal-600 flex items-center gap-1">
-                                  <CheckCircle2 className="w-3.5 h-3.5" /> Guardado
-                                </span>
-                              )}
+
+                          {r.revisado ? (
+                            <div className="bg-blue-50/60 border-l-4 border-[#0f766e] rounded-r-lg px-3 py-2">
+                              <p className="text-sm text-gray-700 whitespace-pre-line">
+                                {r.observaciones || <span className="text-gray-400 italic">Sin observaciones registradas.</span>}
+                              </p>
                               <button
-                                onClick={() => handleGuardarRevision(r.id_revision)}
-                                disabled={guardandoRev === r.id_revision}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-[#0f766e] text-white text-sm font-normal rounded-lg hover:bg-[#115e59] transition-colors cursor-pointer disabled:opacity-60"
+                                type="button"
+                                onClick={() => handleReabrir(r.id_revision)}
+                                disabled={reabriendo === r.id_revision}
+                                className="mt-2 flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#0f766e] transition-colors cursor-pointer disabled:opacity-60"
                               >
-                                {guardandoRev === r.id_revision ? (
-                                  <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Guardando...</>
-                                ) : (
-                                  <><Save className="w-3.5 h-3.5" /> Marcar como revisado</>
-                                )}
+                                {reabriendo === r.id_revision
+                                  ? <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                  : <RotateCcw className="w-3 h-3" />}
+                                Reabrir revisión
                               </button>
                             </div>
-                          </div>
-                        )}
+                          ) : (
+                            <div className="space-y-2">
+                              <textarea
+                                value={obsRevision[r.id_revision] ?? ''}
+                                onChange={e => setObsRevision(prev => ({ ...prev, [r.id_revision]: e.target.value }))}
+                                rows={3}
+                                placeholder="Escribe tus observaciones para esta entrega..."
+                                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 outline-none resize-none focus:ring-2 focus:ring-teal-100 focus:border-[#0f766e] transition-all"
+                              />
+                              <div className="flex items-center justify-end gap-3">
+                                {guardadoRevOk === r.id_revision && (
+                                  <span className="text-xs text-teal-600 flex items-center gap-1">
+                                    <CheckCircle2 className="w-3.5 h-3.5" /> Guardado
+                                  </span>
+                                )}
+                                <button
+                                  onClick={() => handleGuardarRevision(r.id_revision)}
+                                  disabled={guardandoRev === r.id_revision}
+                                  className="flex items-center gap-1.5 px-4 py-2 bg-[#0f766e] text-white text-sm font-normal rounded-lg hover:bg-[#115e59] transition-colors cursor-pointer disabled:opacity-60"
+                                >
+                                  {guardandoRev === r.id_revision ? (
+                                    <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Guardando...</>
+                                  ) : (
+                                    <><Save className="w-3.5 h-3.5" /> Marcar como revisado</>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                     </div>

@@ -352,6 +352,12 @@ export async function guardarObservacionesRevision(id_revision: number, observac
   });
 }
 
+export async function reabrirRevision(id_revision: number) {
+  return request<{ message: string; data: Revision }>(`/revisiones/${id_revision}/reabrir`, {
+    method: 'PATCH',
+  });
+}
+
 // Asesorías
 export interface Asesoria {
   id_asesoria: number;

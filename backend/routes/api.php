@@ -78,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/seguimientos/{seguimiento}/revisiones',           [RevisionController::class, 'index']);
     Route::post('/seguimientos/{seguimiento}/revisiones',          [RevisionController::class, 'store']);
     Route::patch('/revisiones/{revision}/observaciones',           [RevisionController::class, 'guardarObservaciones']);
+    Route::patch('/revisiones/{revision}/reabrir',                 [RevisionController::class, 'reabrir']);
 
     // Asesorías
     Route::get('/seguimientos/{seguimiento}/asesorias',    [AsesoriaController::class, 'index']);

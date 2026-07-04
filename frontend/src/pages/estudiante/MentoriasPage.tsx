@@ -3,9 +3,10 @@ import {
   BookOpen, AlertCircle, X, Upload, FileText,
   Send, ChevronDown, ChevronUp, Plus, MessageSquare,
   CalendarDays, Clock, Video, MapPin, Link, CheckCircle2, XCircle, Trophy, User,
+  ClipboardList, GraduationCap, Paperclip, Download,
 } from 'lucide-react';
 import {
-  getMisMentorias, getRevisiones, crearRevision, getAsesorias,
+  getMisMentorias, getRevisiones, crearRevision, getAsesorias, descargarDocumento,
   type Proyecto, type Seguimiento, type Revision, type Asesoria,
 } from '../../api';
 
@@ -241,6 +242,8 @@ const AsesoriasPanel: React.FC<{ id_seguimiento: number }> = ({ id_seguimiento }
   );
 };
 
+type ArchivoPendiente = { id: string; file: File; nombre: string };
+
 // ── Panel de revisiones ───────────────────────────────────────────────────────
 const RevisionesPanel: React.FC<{ id_seguimiento: number; finalizada: boolean }> = ({ id_seguimiento, finalizada }) => {
   const [revisiones, setRevisiones]   = useState<Revision[]>([]);
@@ -248,9 +251,9 @@ const RevisionesPanel: React.FC<{ id_seguimiento: number; finalizada: boolean }>
   const [enviando, setEnviando]       = useState(false);
   const [error, setError]             = useState('');
   const [exito, setExito]             = useState('');
-  const [archivos, setArchivos]       = useState<File[]>([]);
-  const [nombres, setNombres]         = useState<string[]>([]);
+  const [pendientes, setPendientes]   = useState<ArchivoPendiente[]>([]);
   const [comentario, setComentario]   = useState('');
+  const [descargando, setDescargando] = useState<number | null>(null);
   const fileRef                       = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -260,28 +263,54 @@ const RevisionesPanel: React.FC<{ id_seguimiento: number; finalizada: boolean }>
       .finally(() => setLoading(false));
   }, [id_seguimiento]);
 
+  // Orden explícito por fecha de envío — no depende del orden en que la API devuelva las entregas.
+  const revisionesOrdenadas = [...revisiones].sort((a, b) =>
+    a.fecha_envio === b.fecha_envio ? a.id_revision - b.id_revision : a.fecha_envio.localeCompare(b.fecha_envio)
+  );
+
   const agregarArchivo = (files: FileList | null) => {
     if (!files) return;
-    const nuevos = Array.from(files);
-    setArchivos(prev => [...prev, ...nuevos]);
-    setNombres(prev => [...prev, ...nuevos.map(f => f.name.replace(/\.[^.]+$/, ''))]);
+    const nuevos = Array.from(files).map(file => ({
+      id: `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2)}`,
+      file,
+      nombre: file.name.replace(/\.[^.]+$/, ''),
+    }));
+    setPendientes(prev => [...prev, ...nuevos]);
     if (fileRef.current) fileRef.current.value = '';
   };
 
-  const quitarArchivo = (i: number) => {
-    setArchivos(prev => prev.filter((_, idx) => idx !== i));
-    setNombres(prev => prev.filter((_, idx) => idx !== i));
+  const quitarArchivo = (id: string) => {
+    setPendientes(prev => prev.filter(p => p.id !== id));
+  };
+
+  const actualizarNombre = (id: string, nombre: string) => {
+    setPendientes(prev => prev.map(p => p.id === id ? { ...p, nombre } : p));
+  };
+
+  const handleDescargar = async (id_documento: number, nombre: string) => {
+    setDescargando(id_documento); setError('');
+    try {
+      await descargarDocumento(id_documento, nombre);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo descargar el archivo.');
+    } finally {
+      setDescargando(null);
+    }
   };
 
   const handleEnviar = async () => {
-    if (archivos.length === 0) { setError('Agrega al menos un archivo.'); return; }
-    if (nombres.some(n => !n.trim())) { setError('Todos los archivos deben tener nombre.'); return; }
+    if (pendientes.length === 0) { setError('Agrega al menos un archivo.'); return; }
+    if (pendientes.some(p => !p.nombre.trim())) { setError('Todos los archivos deben tener nombre.'); return; }
     setEnviando(true); setError(''); setExito('');
     try {
-      const { data } = await crearRevision(id_seguimiento, nombres, archivos, comentario.trim() || undefined);
+      const { data } = await crearRevision(
+        id_seguimiento,
+        pendientes.map(p => p.nombre),
+        pendientes.map(p => p.file),
+        comentario.trim() || undefined
+      );
       setRevisiones(prev => [...prev, data]);
-      setArchivos([]);
-      setNombres([]);
+      setPendientes([]);
       setComentario('');
       setExito('Entrega enviada exitosamente.');
       setTimeout(() => setExito(''), 3000);
@@ -302,8 +331,16 @@ const RevisionesPanel: React.FC<{ id_seguimiento: number; finalizada: boolean }>
           <p className="text-sm text-blue-700 font-medium">Mentoría finalizada — ya no es posible enviar nuevas entregas.</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          <p className="text-xs font-medium text-[#1A365D] uppercase tracking-wider">Nueva entrega</p>
+        <div className="rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/30 p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-[#1A365D] flex items-center justify-center shrink-0">
+              <ClipboardList className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#1A365D]">Nueva entrega</p>
+              <p className="text-[11px] text-gray-500">Adjunta tus documentos para que tu mentor los revise</p>
+            </div>
+          </div>
 
           <div>
             <label className="text-xs text-gray-500 mb-1 block">Comentario (opcional) — indica al mentor lo que necesitas que revise</label>
@@ -311,25 +348,25 @@ const RevisionesPanel: React.FC<{ id_seguimiento: number; finalizada: boolean }>
               value={comentario}
               onChange={e => setComentario(e.target.value)}
               rows={2}
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 outline-none focus:border-[#1A365D] transition-all resize-none"
+              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 outline-none focus:border-[#1A365D] transition-all resize-none"
               placeholder="Ej: Adjunto la versión actualizada del MVP, falta revisar el módulo de pagos..."
             />
           </div>
 
-          {archivos.length > 0 && (
+          {pendientes.length > 0 && (
             <div className="space-y-2">
-              {archivos.map((f, i) => (
-                <div key={i} className="flex items-center gap-2">
+              {pendientes.map(p => (
+                <div key={p.id} className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-1.5">
                   <FileText className="w-4 h-4 text-[#1A365D] shrink-0" />
                   <input
                     type="text"
-                    value={nombres[i]}
-                    onChange={e => setNombres(prev => prev.map((n, idx) => idx === i ? e.target.value : n))}
-                    className="flex-1 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 outline-none focus:border-[#1A365D] transition-all"
+                    value={p.nombre}
+                    onChange={e => actualizarNombre(p.id, e.target.value)}
+                    className="flex-1 py-0.5 bg-transparent text-sm text-gray-800 outline-none"
                     placeholder="Nombre del documento"
                   />
-                  <span className="text-xs text-gray-400 truncate max-w-[120px]">{f.name}</span>
-                  <button type="button" onClick={() => quitarArchivo(i)} className="text-gray-300 hover:text-red-500 cursor-pointer">
+                  <span className="text-xs text-gray-400 truncate max-w-[120px]">{p.file.name}</span>
+                  <button type="button" onClick={() => quitarArchivo(p.id)} className="text-gray-300 hover:text-red-500 cursor-pointer">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
@@ -338,14 +375,14 @@ const RevisionesPanel: React.FC<{ id_seguimiento: number; finalizada: boolean }>
           )}
 
           <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-gray-200 rounded-lg text-sm text-gray-500 cursor-pointer hover:bg-gray-50 transition-colors">
+            <label className="flex items-center gap-2 px-3 py-2 bg-white border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 cursor-pointer hover:bg-gray-50 transition-colors">
               <Plus className="w-4 h-4 text-[#1A365D]" />
               Agregar archivo
               <input ref={fileRef} type="file" multiple className="hidden" onChange={e => agregarArchivo(e.target.files)} />
             </label>
             <button
               onClick={handleEnviar}
-              disabled={enviando || archivos.length === 0}
+              disabled={enviando || pendientes.length === 0}
               className="ml-auto flex items-center gap-2 px-4 py-2 bg-[#1A365D] hover:bg-[#0F2442] text-white text-sm font-medium rounded-lg transition-colors cursor-pointer disabled:opacity-60"
             >
               <Send className="w-4 h-4" />
@@ -366,55 +403,75 @@ const RevisionesPanel: React.FC<{ id_seguimiento: number; finalizada: boolean }>
           <div className="flex justify-center py-6">
             <div className="w-5 h-5 border-2 border-[#1A365D] border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : revisiones.length === 0 ? (
+        ) : revisionesOrdenadas.length === 0 ? (
           <div className="text-center py-6">
             <Upload className="w-6 h-6 text-gray-200 mx-auto mb-2" />
             <p className="text-sm text-gray-400">Aún no has enviado entregas en esta etapa.</p>
           </div>
         ) : (
-          revisiones.map((r, i) => (
-            <div key={r.id_revision} className="border border-gray-100 rounded-lg overflow-hidden">
-              {/* Cabecera de la entrega */}
-              <div className="bg-gray-50 px-4 py-2.5 flex items-center gap-3">
-                <p className="text-xs font-medium text-[#1A365D] flex-1">
-                  Entrega #{i + 1} · {new Date(r.fecha_envio + 'T00:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
-                </p>
-                {r.revisado && (
-                  <span className="text-xs font-medium text-teal-700 bg-teal-50 border border-teal-100 rounded-full px-2.5 py-0.5">
-                    Revisado
-                  </span>
+          revisionesOrdenadas.map((r, i) => (
+            <div key={r.id_revision} className="rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow bg-white">
+              {/* Cabecera tipo tarea */}
+              <div className={`px-4 py-3 flex items-center gap-3 border-b ${r.revisado ? 'bg-teal-50/60 border-teal-100' : 'bg-amber-50/60 border-amber-100'}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0 ${r.revisado ? 'bg-teal-600' : 'bg-amber-500'}`}>
+                  {i + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-800">Entrega #{i + 1}</p>
+                  <p className="flex items-center gap-1 text-[11px] text-gray-500">
+                    <CalendarDays className="w-3 h-3" />
+                    {new Date(r.fecha_envio + 'T00:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </p>
+                </div>
+                <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full border shrink-0 ${
+                  r.revisado ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                }`}>
+                  {r.revisado ? <GraduationCap className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                  {r.revisado ? 'Revisado' : 'En revisión'}
+                </span>
+              </div>
+
+              <div className="p-4 space-y-3">
+                {/* Comentario del estudiante — estilo nota adhesiva */}
+                {r.comentario_estudiante && (
+                  <div className="bg-amber-50/60 border-l-4 border-amber-300 rounded-r-lg px-3 py-2">
+                    <p className="text-[11px] text-amber-700 font-semibold flex items-center gap-1.5 mb-1">
+                      <MessageSquare className="w-3.5 h-3.5" /> Tu comentario
+                    </p>
+                    <p className="text-sm text-gray-700 whitespace-pre-line">{r.comentario_estudiante}</p>
+                  </div>
+                )}
+
+                {/* Documentos adjuntos como chips descargables */}
+                <div className="flex flex-wrap gap-2">
+                  {r.documentos.map(d => (
+                    <button
+                      key={d.id_documento}
+                      type="button"
+                      onClick={() => handleDescargar(d.id_documento, d.nombre)}
+                      disabled={descargando === d.id_documento}
+                      title={`Descargar ${d.nombre}`}
+                      className="group inline-flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full pl-2 pr-3 py-1 hover:bg-teal-50 hover:border-teal-200 transition-colors cursor-pointer disabled:opacity-60"
+                    >
+                      <Paperclip className="w-3 h-3 text-gray-400 group-hover:text-teal-600 shrink-0" />
+                      <span className="text-xs text-gray-700 truncate max-w-[160px]">{d.nombre}</span>
+                      {descargando === d.id_documento
+                        ? <div className="w-3 h-3 border-2 border-teal-600 border-t-transparent rounded-full animate-spin shrink-0" />
+                        : <Download className="w-3 h-3 text-gray-400 group-hover:text-teal-600 shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Retroalimentación del mentor — estilo nota de clase */}
+                {r.observaciones && (
+                  <div className="bg-blue-50/60 border-l-4 border-[#1A365D] rounded-r-lg px-3 py-2">
+                    <p className="text-[11px] text-[#1A365D] font-semibold flex items-center gap-1.5 mb-1">
+                      <GraduationCap className="w-3.5 h-3.5" /> Retroalimentación del mentor
+                    </p>
+                    <p className="text-sm text-gray-700 whitespace-pre-line">{r.observaciones}</p>
+                  </div>
                 )}
               </div>
-
-              {/* Comentario del estudiante */}
-              {r.comentario_estudiante && (
-                <div className="px-4 py-3 border-b border-gray-100 bg-amber-50/50">
-                  <p className="text-xs text-amber-700 font-medium flex items-center gap-1.5 mb-1">
-                    <MessageSquare className="w-3.5 h-3.5" /> Tu comentario
-                  </p>
-                  <p className="text-sm text-gray-700 whitespace-pre-line">{r.comentario_estudiante}</p>
-                </div>
-              )}
-
-              {/* Documentos */}
-              <div className="px-4 py-3 space-y-1.5">
-                {r.documentos.map(d => (
-                  <div key={d.id_documento} className="flex items-center gap-2">
-                    <FileText className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                    <p className="text-sm text-gray-700 truncate">{d.nombre}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Observaciones del mentor */}
-              {r.observaciones && (
-                <div className="px-4 py-3 border-t border-gray-100 bg-blue-50/40">
-                  <p className="text-xs text-[#1A365D] font-medium flex items-center gap-1.5 mb-1">
-                    <MessageSquare className="w-3.5 h-3.5" /> Observaciones del mentor
-                  </p>
-                  <p className="text-sm text-gray-700 whitespace-pre-line">{r.observaciones}</p>
-                </div>
-              )}
             </div>
           ))
         )}

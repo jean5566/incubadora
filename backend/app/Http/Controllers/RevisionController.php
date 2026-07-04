@@ -115,4 +115,19 @@ class RevisionController extends Controller
 
         return response()->json(['message' => 'Observaciones guardadas.', 'data' => $revision]);
     }
+
+    /**
+     * El mentor reabre una revisión ya marcada, para corregir sus observaciones.
+     */
+    public function reabrir(Request $request, Revision $revision)
+    {
+        abort_unless($request->user()->rol === 'mentor', 403);
+        abort_unless($revision->seguimiento->id_mentor === $request->user()->id_usuario, 403);
+
+        abort_unless($revision->revisado, 422, 'Esta entrega aún no ha sido revisada.');
+
+        $revision->update(['revisado' => false]);
+
+        return response()->json(['message' => 'Revisión reabierta.', 'data' => $revision]);
+    }
 }
